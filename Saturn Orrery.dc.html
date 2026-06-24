@@ -37,10 +37,10 @@
 </style>
 </helmet>
 
-<div ref="{{ setRoot }}" style="position:relative;width:100%;min-height:100vh;background:#eceff2;color:#14171a;font-family:'IBM Plex Mono',ui-monospace,monospace;overflow:hidden;">
+<div ref="{{ setRoot }}" style="{{ rootStyle }}">
 
   <!-- ORBITAL STAGE -->
-  <div style="position:fixed;inset:0;overflow:hidden;background:#eceff2;">
+  <div style="{{ stageWrapStyle }}">
     <div style="{{ systemStyle }}">
 
       <!-- orbital lines -->
@@ -94,7 +94,7 @@
 
   <!-- bottom navigation -->
   <div style="{{ navStyle }}">
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;border-top:1px solid #d6d9dc;">
+    <div style="{{ navGridStyle }}">
       <sc-for list="{{ moons }}" as="m" hint-placeholder-count="7">
         <div onClick="{{ m.onClick }}" onMouseEnter="{{ m.onEnter }}" onMouseLeave="{{ m.onLeave }}" style="{{ m.navItemStyle }}">
           <div style="display:flex;align-items:center;gap:7px;margin-bottom:9px;">
@@ -109,7 +109,7 @@
 
   <!-- MOON PAGE -->
   <sc-if value="{{ pageOpen }}" hint-placeholder-val="{{ false }}">
-    <div style="{{ pageStyle }}">
+    <div ref="{{ setPageEl }}" style="{{ pageStyle }}">
 
       <!-- click-catcher to close dropdown -->
       <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
@@ -151,9 +151,9 @@
       </div>
 
       <!-- left image placeholder -->
-      <div style="width:24%;min-width:240px;max-width:360px;flex:none;padding:130px 0 40px 40px;">
-        <div style="position:sticky;top:130px;">
-          <div style="position:relative;overflow:hidden;aspect-ratio:3/4;width:100%;background:repeating-linear-gradient(45deg,#e4e7ea 0 11px,#dde0e3 11px 22px);border:1px solid #d2d6d9;display:flex;align-items:center;justify-content:center;text-align:center;">
+      <div style="{{ pageImgWrapStyle }}">
+        <div style="{{ pageImgStickyStyle }}">
+          <div style="{{ pageImgBoxStyle }}">
             <span style="font-size:11px;font-weight:500;letter-spacing:0.12em;color:#7c8287;line-height:1.9;">[ DROP HI-RES IMAGE ]</span>
             {{ am.imgEl }}
           </div>
@@ -165,7 +165,7 @@
       </div>
 
       <!-- content -->
-      <div class="orrery-scroll" style="flex:1;height:100vh;overflow:auto;padding:130px 90px 110px;">
+      <div class="orrery-scroll" style="{{ pageContentStyle }}">
         <div class="moon-prose" style="max-width:720px;">
           <h1 style="font-size:clamp(36px,5vw,62px);font-weight:600;line-height:1.04;letter-spacing:-0.01em;margin:0 0 28px;">{{ am.section }}</h1>
           <p style="font-size:19px;font-weight:500;line-height:1.6;color:#14171a;margin:0 0 36px;max-width:600px;text-wrap:pretty;">{{ am.tagline }}</p>
@@ -325,8 +325,21 @@ class Component extends DCLogic {
     this.setState({ baseScale: bs, winW: window.innerWidth, winH: window.innerHeight });
   }
 
+  isMobileNow() { return (typeof window !== 'undefined' ? window.innerWidth : 1200) < 760; }
+  setPageEl = (el) => { this.pageEl = el; };
+
   zoomTo(i) {
     if (this.state.phase !== 'home') return;
+    // Mobile: no cinematic zoom (the fixed full-screen stage doesn't exist in the
+    // scrolling layout) — open the page directly with a fade.
+    if (this.isMobileNow()) {
+      // mount the overlay at opacity 0, then flip to 1 so it fades in
+      this.setState({ phase: 'mobFade', activeIdx: i, menuOpen: false });
+      this.probeImage(i);
+      clearTimeout(this._t);
+      this._t = setTimeout(() => { if (this.pageEl) this.pageEl.scrollTop = 0; this.setState({ phase: 'page' }); }, 40);
+      return;
+    }
     const root = this.rootEl;
     if (!root) return;
     root.querySelectorAll('[data-spin]').forEach(e => { e.style.animationPlayState = 'paused'; });
@@ -355,6 +368,18 @@ class Component extends DCLogic {
   goToPage(i) {
     this.setState({ menuOpen: false });
     if (i === this.state.activeIdx) return;
+    if (this.isMobileNow()) {
+      // fade current page out, swap content, fade the new one in
+      this.setState({ phase: 'mobFade' });
+      clearTimeout(this._t);
+      this._t = setTimeout(() => {
+        this.setState({ activeIdx: i });
+        this.probeImage(i);
+        if (this.pageEl) this.pageEl.scrollTop = 0;
+        this._t = setTimeout(() => this.setState({ phase: 'page' }), 40);
+      }, 300);
+      return;
+    }
     this.setState({ phase: 'closingPage' });
     clearTimeout(this._t);
     this._t = setTimeout(() => { this.setState({ activeIdx: i, phase: 'page', cam: this.camFor(i) }); this.probeImage(i); }, 340);
@@ -364,11 +389,17 @@ class Component extends DCLogic {
 
   probeImage(i) {
     const name = (this.moonsData[i].moon || '').toLowerCase();
-    if (window.MOON_IMAGES && window.MOON_IMAGES[name]) { this.setState({ imgSrc: window.MOON_IMAGES[name], imgForIdx: i }); return; }
+    const embedded = (window.MOON_IMAGES && window.MOON_IMAGES[name]) || null;
+    const isFile = (typeof location !== 'undefined' && location.protocol === 'file:');
+    // Offline single-file (opened from disk): use the embedded image immediately —
+    // there are no sibling image files to load.
+    if (isFile && embedded) { this.setState({ imgSrc: embedded, imgForIdx: i }); return; }
+    // Hosted site / local server: load straight from the images/ folder so swapping a
+    // photo is just "replace the file + commit". Falls back to the embedded copy.
     const exts = ['jpg', 'png', 'jpeg', 'webp'];
     let k = 0;
     const tryNext = () => {
-      if (k >= exts.length) { this.setState({ imgSrc: null, imgForIdx: i }); return; }
+      if (k >= exts.length) { this.setState({ imgSrc: embedded, imgForIdx: i }); return; }
       const src = 'images/' + name + '.' + exts[k++];
       const im = new Image();
       im.onload = () => this.setState({ imgSrc: src, imgForIdx: i });
@@ -381,6 +412,13 @@ class Component extends DCLogic {
 
   goHome() {
     if (this.state.phase !== 'page') return;
+    if (this.isMobileNow()) {
+      // fade the page out before revealing home
+      this.setState({ phase: 'mobFade', menuOpen: false });
+      clearTimeout(this._t);
+      this._t = setTimeout(() => this.setState({ phase: 'home', activeIdx: null, cam: null, imgSrc: null }), 320);
+      return;
+    }
     this.setState({ phase: 'closingPage', menuOpen: false });
     clearTimeout(this._t);
     this._t = setTimeout(() => {
@@ -392,6 +430,9 @@ class Component extends DCLogic {
   renderVals() {
     const { phase, activeIdx, cam, baseScale, hovered } = this.state;
     const bs = baseScale || 1;
+    const winW = this.state.winW || (typeof window !== 'undefined' ? window.innerWidth : 1200);
+    const winH = this.state.winH || (typeof window !== 'undefined' ? window.innerHeight : 800);
+    const isMobile = winW < 760;
     const motionOn = this.props.motion !== false;
     const orbitsOn = this.props.orbitsVisible !== false;
     const saturnColor = this.props.saturnColor || '#111111';
@@ -429,7 +470,11 @@ class Component extends DCLogic {
         boxShadow: hovered === i ? '0 0 0 5px rgba(20,23,26,0.10)' : 'none',
         transition: 'box-shadow 0.25s ease'
       },
-      navItemStyle: {
+      navItemStyle: isMobile ? {
+        padding: '15px 26px', cursor: 'pointer', display: 'block',
+        background: hovered === i ? '#e4e7ea' : 'transparent',
+        borderBottom: '1px solid #e3e6e8', transition: 'background 0.2s ease'
+      } : {
         padding: '20px 18px 22px', cursor: 'pointer',
         background: hovered === i ? '#e4e7ea' : 'transparent',
         transition: 'background 0.2s ease'
@@ -453,17 +498,40 @@ class Component extends DCLogic {
     } else {
       transform = cam; opacity = 0; transition = 'none'; pe = 'none';
     }
-    const winW = this.state.winW || (typeof window !== 'undefined' ? window.innerWidth : 1200);
-    const winH = this.state.winH || (typeof window !== 'undefined' ? window.innerHeight : 800);
     const cy = (winH - this.NAVBAND) / 2;
-    const systemStyle = {
-      position: 'absolute', left: ((winW - 1200) / 2) + 'px', top: (cy - 600) + 'px',
-      width: '1200px', height: '1200px',
-      transformOrigin: '50% 50%', transform, opacity, transition, pointerEvents: pe
-    };
+    let systemStyle;
+    if (isMobile) {
+      const stageH = Math.min(0.92 * winW, 480);
+      const ms = Math.min(winW * 0.96, stageH * 0.96) / 1200;
+      systemStyle = {
+        position: 'absolute', left: '50%', top: '50%',
+        width: '1200px', height: '1200px', transformOrigin: '50% 50%',
+        transform: 'translate(-50%,-50%) scale(' + ms + ')', opacity: 1,
+        transition: 'none', pointerEvents: 'auto'
+      };
+    } else {
+      systemStyle = {
+        position: 'absolute', left: ((winW - 1200) / 2) + 'px', top: (cy - 600) + 'px',
+        width: '1200px', height: '1200px',
+        transformOrigin: '50% 50%', transform, opacity, transition, pointerEvents: pe
+      };
+    }
 
     const homeFade = phase === 'home';
-    const labelLeftStyle = {
+    const rootStyle = {
+      position: 'relative', width: '100%', minHeight: '100vh',
+      background: '#eceff2', color: '#14171a',
+      fontFamily: "'IBM Plex Mono',ui-monospace,monospace",
+      overflow: isMobile ? 'visible' : 'hidden',
+      display: isMobile ? 'flex' : 'block',
+      flexDirection: isMobile ? 'column' : undefined
+    };
+    const stageWrapStyle = isMobile
+      ? { position: 'relative', order: 2, width: '100%', height: '92vw', maxHeight: '480px', overflow: 'hidden', background: '#eceff2' }
+      : { position: 'fixed', inset: 0, overflow: 'hidden', background: '#eceff2' };
+    const labelLeftStyle = isMobile ? {
+      position: 'static', order: 1, padding: '32px 26px 6px', zIndex: 30, opacity: 1, pointerEvents: 'none'
+    } : {
       position: 'fixed', top: '30px', left: '34px', zIndex: 30,
       opacity: homeFade ? 1 : 0, pointerEvents: 'none', transition: 'opacity .5s ease'
     };
@@ -471,12 +539,17 @@ class Component extends DCLogic {
       position: 'fixed', top: '30px', right: '34px', zIndex: 30, textAlign: 'right',
       opacity: homeFade ? 1 : 0, pointerEvents: 'none', transition: 'opacity .5s ease'
     };
-    const navStyle = {
+    const navStyle = isMobile ? {
+      position: 'static', order: 3, width: '100%', padding: '2px 0 48px', zIndex: 30, opacity: 1, pointerEvents: 'auto'
+    } : {
       position: 'fixed', left: '50%', bottom: '34px', transform: 'translateX(-50%)',
       width: 'min(1080px,92vw)', zIndex: 30,
       opacity: homeFade ? 1 : 0, pointerEvents: homeFade ? 'auto' : 'none',
       transition: 'opacity .5s ease'
     };
+    const navGridStyle = isMobile
+      ? { display: 'flex', flexDirection: 'column', borderTop: '1px solid #d6d9dc' }
+      : { display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: '2px', borderTop: '1px solid #d6d9dc' };
 
     const pageOpen = activeIdx != null && phase !== 'home';
     const m = activeIdx != null ? this.moonsData[activeIdx] : {};
@@ -509,8 +582,23 @@ class Component extends DCLogic {
     const pageStyle = {
       position: 'fixed', inset: 0, background: '#f5f6f7', zIndex: 50,
       opacity: phase === 'page' ? 1 : 0, transition: 'opacity .5s ease',
-      pointerEvents: phase === 'page' ? 'auto' : 'none', display: 'flex'
+      pointerEvents: phase === 'page' ? 'auto' : 'none',
+      display: 'flex', flexDirection: isMobile ? 'column' : 'row',
+      overflowY: isMobile ? 'auto' : 'visible', WebkitOverflowScrolling: 'touch'
     };
+    const pageImgWrapStyle = isMobile
+      ? { width: '100%', flex: 'none', order: 2, padding: '4px 22px 54px' }
+      : { width: '24%', minWidth: '240px', maxWidth: '360px', flex: 'none', padding: '130px 0 40px 40px' };
+    const pageImgStickyStyle = isMobile ? { position: 'static' } : { position: 'sticky', top: '130px' };
+    const pageImgBoxStyle = {
+      position: 'relative', overflow: 'hidden', aspectRatio: '3/4',
+      width: '100%', maxWidth: isMobile ? '300px' : 'none', margin: isMobile ? '0 auto' : '0',
+      background: 'repeating-linear-gradient(45deg,#e4e7ea 0 11px,#dde0e3 11px 22px)',
+      border: '1px solid #d2d6d9', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center'
+    };
+    const pageContentStyle = isMobile
+      ? { width: '100%', flex: 'none', order: 1, height: 'auto', overflow: 'visible', padding: '88px 22px 16px' }
+      : { flex: 1, height: '100vh', overflow: 'auto', padding: '130px 90px 110px' };
 
     const menuOpen = this.state.menuOpen;
     const pageLinks = this.moonsData.map((mm, i) => ({
@@ -522,8 +610,9 @@ class Component extends DCLogic {
     const caretStyle = { cursor: 'pointer', fontSize: '13px', color: '#14171a', userSelect: 'none', transform: menuOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform .3s ease', lineHeight: 1, padding: '4px' };
     const menuStyle = { position: 'absolute', top: '52px', left: 0, background: '#fbfbfa', border: '1px solid #dadde0', boxShadow: '0 14px 34px rgba(20,23,26,0.12)', padding: '6px', minWidth: '210px', transformOrigin: 'top left', transform: menuOpen ? 'scaleY(1)' : 'scaleY(0)', opacity: menuOpen ? 1 : 0, transition: 'transform .28s cubic-bezier(.5,0,.2,1), opacity .25s ease', pointerEvents: menuOpen ? 'auto' : 'none' };
 
-    return { setRoot: this.setRoot, goHome: this.goHomeFn, toggleMenu: this.toggleMenuFn, menuOpen, pageLinks, caretStyle, menuStyle, moons, systemStyle, saturnColor,
-      labelLeftStyle, labelRightStyle, navStyle, pageOpen, am, pageStyle };
+    return { setRoot: this.setRoot, setPageEl: this.setPageEl, goHome: this.goHomeFn, toggleMenu: this.toggleMenuFn, menuOpen, pageLinks, caretStyle, menuStyle, moons, systemStyle, saturnColor,
+      labelLeftStyle, labelRightStyle, navStyle, navGridStyle, rootStyle, stageWrapStyle,
+      pageImgWrapStyle, pageImgStickyStyle, pageImgBoxStyle, pageContentStyle, pageOpen, am, pageStyle };
   }
 }
 </script>

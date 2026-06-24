@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Erin Flowers Astrophysicist personal website" />
+<meta name="keywords" content="Erin Flowers, astrophysicist, astrophysics, Princeton, Dragonfly, Titan, exoplanets, CST" />
+<meta name="google-site-verification" content="-6DzRMST1qxR1E057hhvkoUTDhP1fL3wSMOr4M-Cqts" />
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="./support.js"></script>
+<script src="./moon-assets.js"></script>
+</head>
+<body>
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+<rect width="100" height="100" fill="#eceff2"></rect>
+<ellipse cx="50" cy="50" rx="30" ry="8" fill="none" stroke="#111" stroke-width="1.4"></ellipse>
+<circle cx="50" cy="50" r="14" fill="#d5b96e" stroke="#a8893c" stroke-width="1"></circle>
+<path d="M20 50 a30 8 0 0 0 60 0" fill="none" stroke="#111" stroke-width="1.4"></path>
+</svg>
+</template>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  @keyframes orbitSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+  ::selection{background:#14171a;color:#eceff2}
+  .orrery-scroll::-webkit-scrollbar{width:8px}
+  .orrery-scroll::-webkit-scrollbar-thumb{background:#cdd1d4}
+  .moon-prose a{color:#2a6f6a;text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px;font-weight:500;}
+  .moon-prose a:hover{color:#173f3c;}
+</style>
+</helmet>
+
+<div ref="{{ setRoot }}" style="position:relative;width:100%;min-height:100vh;background:#eceff2;color:#14171a;font-family:'IBM Plex Mono',ui-monospace,monospace;overflow:hidden;">
+
+  <!-- ORBITAL STAGE -->
+  <div style="position:fixed;inset:0;overflow:hidden;background:#eceff2;">
+    <div style="{{ systemStyle }}">
+
+      <!-- orbital lines -->
+      <sc-for list="{{ moons }}" as="m" hint-placeholder-count="7">
+        <div style="{{ m.orbitStyle }}"></div>
+      </sc-for>
+
+      <!-- Saturn wireframe -->
+      <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2;">
+        <svg width="470" viewBox="0 0 360 260" overflow="visible">
+          <defs>
+            <clipPath id="satFront">
+              <rect x="-300" y="130" width="960" height="640"></rect>
+            </clipPath>
+          </defs>
+          <!-- rings behind the planet -->
+          <g transform="rotate(-16 180 130)">
+            <ellipse cx="180" cy="130" rx="168" ry="50" fill="none" stroke="{{ saturnColor }}" stroke-width="1.4"></ellipse>
+            <ellipse cx="180" cy="130" rx="150" ry="44" fill="none" stroke="{{ saturnColor }}" stroke-width="1.4"></ellipse>
+            <ellipse cx="180" cy="130" rx="120" ry="36" fill="none" stroke="{{ saturnColor }}" stroke-width="1.4"></ellipse>
+          </g>
+          <!-- planet body -->
+          <circle cx="180" cy="130" r="92" fill="#d5b96e" stroke="#a8893c" stroke-width="1.6"></circle>
+          <!-- front half of rings, passing in front of the planet -->
+          <g transform="rotate(-16 180 130)" clip-path="url(#satFront)">
+            <ellipse cx="180" cy="130" rx="168" ry="50" fill="none" stroke="{{ saturnColor }}" stroke-width="1.4"></ellipse>
+            <ellipse cx="180" cy="130" rx="150" ry="44" fill="none" stroke="{{ saturnColor }}" stroke-width="1.4"></ellipse>
+            <ellipse cx="180" cy="130" rx="120" ry="36" fill="none" stroke="{{ saturnColor }}" stroke-width="1.4"></ellipse>
+          </g>
+        </svg>
+      </div>
+
+      <!-- moons -->
+      <sc-for list="{{ moons }}" as="m" hint-placeholder-count="7">
+        <div style="{{ m.rotatorStyle }}">
+          <div data-spin="1" style="{{ m.spinnerStyle }}">
+            <div id="moon-{{ $index }}" onClick="{{ m.onClick }}" onMouseEnter="{{ m.onEnter }}" onMouseLeave="{{ m.onLeave }}" style="{{ m.moonStyle }}"></div>
+          </div>
+        </div>
+      </sc-for>
+
+    </div>
+  </div>
+
+  <!-- corner labels -->
+  <div style="{{ labelLeftStyle }}">
+    <div style="font-weight:600;font-size:13px;letter-spacing:0.04em;">DR. ERIN E. FLOWERS</div>
+    <div style="font-size:11px;letter-spacing:0.22em;color:#6b7176;margin-top:5px;">ASTROPHYSICIST</div>
+  </div>
+  
+
+  <!-- bottom navigation -->
+  <div style="{{ navStyle }}">
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;border-top:1px solid #d6d9dc;">
+      <sc-for list="{{ moons }}" as="m" hint-placeholder-count="7">
+        <div onClick="{{ m.onClick }}" onMouseEnter="{{ m.onEnter }}" onMouseLeave="{{ m.onLeave }}" style="{{ m.navItemStyle }}">
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:9px;">
+            <span style="{{ m.dotStyle }}"></span>
+            <span style="font-size:10px;letter-spacing:0.14em;color:#9a9ea2;">{{ m.idxLabel }}</span>
+          </div>
+          <div style="font-size:12.5px;font-weight:500;line-height:1.35;letter-spacing:0.01em;color:#14171a;">{{ m.section }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- MOON PAGE -->
+  <sc-if value="{{ pageOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="{{ pageStyle }}">
+
+      <!-- click-catcher to close dropdown -->
+      <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+        <div onClick="{{ toggleMenu }}" style="position:fixed;inset:0;z-index:55;"></div>
+      </sc-if>
+
+      <!-- top-left: home button + dropdown nav -->
+      <div style="position:fixed;top:30px;left:34px;z-index:60;">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div onClick="{{ goHome }}" style="cursor:pointer;display:flex;align-items:center;gap:12px;">
+            <svg width="50" viewBox="0 0 360 260" overflow="visible">
+              <defs>
+                <clipPath id="satFrontSm">
+                  <rect x="-300" y="130" width="960" height="640"></rect>
+                </clipPath>
+              </defs>
+              <g transform="rotate(-16 180 130)">
+                <ellipse cx="180" cy="130" rx="168" ry="50" fill="none" stroke="#14171a" stroke-width="2"></ellipse>
+                <ellipse cx="180" cy="130" rx="124" ry="37" fill="none" stroke="#14171a" stroke-width="2"></ellipse>
+              </g>
+              <circle cx="180" cy="130" r="92" fill="#d5b96e" stroke="#a8893c" stroke-width="2"></circle>
+              <g transform="rotate(-16 180 130)" clip-path="url(#satFrontSm)">
+                <ellipse cx="180" cy="130" rx="168" ry="50" fill="none" stroke="#14171a" stroke-width="2"></ellipse>
+                <ellipse cx="180" cy="130" rx="124" ry="37" fill="none" stroke="#14171a" stroke-width="2"></ellipse>
+              </g>
+            </svg>
+            <span style="font-size:11px;font-weight:500;letter-spacing:0.2em;color:#14171a;">↑ HOME</span>
+          </div>
+          <div onClick="{{ toggleMenu }}" title="Jump to a page" style="{{ caretStyle }}">▾</div>
+        </div>
+        <div style="{{ menuStyle }}">
+          <sc-for list="{{ pageLinks }}" as="pl" hint-placeholder-count="7">
+            <div onClick="{{ pl.onClick }}" style="{{ pl.style }}">
+              <span style="{{ pl.dotStyle }}"></span>
+              <span>{{ pl.section }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- left image placeholder -->
+      <div style="width:24%;min-width:240px;max-width:360px;flex:none;padding:130px 0 40px 40px;">
+        <div style="position:sticky;top:130px;">
+          <div style="position:relative;overflow:hidden;aspect-ratio:3/4;width:100%;background:repeating-linear-gradient(45deg,#e4e7ea 0 11px,#dde0e3 11px 22px);border:1px solid #d2d6d9;display:flex;align-items:center;justify-content:center;text-align:center;">
+            <span style="font-size:11px;font-weight:500;letter-spacing:0.12em;color:#7c8287;line-height:1.9;">[ DROP HI-RES IMAGE ]</span>
+            {{ am.imgEl }}
+          </div>
+          <div style="margin-top:16px;display:flex;align-items:center;gap:9px;">
+            <span style="{{ am.dotStyle }}"></span>
+            <span style="font-size:11px;letter-spacing:0.14em;color:#9a9ea2;">{{ am.caption }}<br></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- content -->
+      <div class="orrery-scroll" style="flex:1;height:100vh;overflow:auto;padding:130px 90px 110px;">
+        <div class="moon-prose" style="max-width:720px;">
+          <h1 style="font-size:clamp(36px,5vw,62px);font-weight:600;line-height:1.04;letter-spacing:-0.01em;margin:0 0 28px;">{{ am.section }}</h1>
+          <p style="font-size:19px;font-weight:500;line-height:1.6;color:#14171a;margin:0 0 36px;max-width:600px;text-wrap:pretty;">{{ am.tagline }}</p>
+          <sc-for list="{{ am.paras }}" as="p" hint-placeholder-count="2">
+            <p style="font-size:15px;font-weight:400;line-height:1.85;color:#3a3e42;margin:0 0 22px;max-width:600px;text-wrap:pretty;" dangerouslySetInnerHTML="{{ p.html }}"></p>
+          </sc-for>
+          <sc-for list="{{ am.sections }}" as="sec" hint-placeholder-count="1">
+            <div style="margin-top:46px;border-top:1px solid #d6d9dc;padding-top:24px;">
+              <div style="font-size:10px;letter-spacing:0.26em;color:#969a9e;margin-bottom:18px;">{{ sec.label }}</div>
+              <sc-for list="{{ sec.items }}" as="li" hint-placeholder-count="4">
+                <div style="{{ li.liStyle }}">
+                  <span style="color:#b1b5b9;font-size:11px;padding-top:2px;">→</span>
+                  <span style="line-height:1.5;" dangerouslySetInnerHTML="{{ li.html }}"></span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+          <sc-if value="{{ am.hasDocs }}" hint-placeholder-val="{{ true }}">
+            <div style="margin-top:46px;border-top:1px solid #d6d9dc;padding-top:24px;">
+              <div style="font-size:10px;letter-spacing:0.26em;color:#969a9e;margin-bottom:18px;">DOCUMENTS</div>
+              <sc-for list="{{ am.docs }}" as="doc" hint-placeholder-count="2">
+                <div style="margin-bottom:30px;">
+                  <a href="{{ doc.file }}" target="_blank" rel="noopener" style="display:inline-block;font-size:13px;font-weight:500;color:#2a6f6a;text-decoration:underline;text-underline-offset:2px;margin-bottom:14px;">{{ doc.labelPdf }}</a>
+                  <object data="{{ doc.file }}" type="application/pdf" style="display:block;width:100%;height:600px;border:1px solid #d6d9dc;background:#fff;"><div style="padding:48px 24px;text-align:center;color:#7c8287;font-size:12px;line-height:1.8;">Drop the PDF at this path to preview it here.</div></object>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+
+    </div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;1280&quot;,&quot;height&quot;:&quot;800&quot;},&quot;saturnColor&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;#111111&quot;,&quot;#1e2a35&quot;,&quot;#3c3a36&quot;],&quot;default&quot;:&quot;#111111&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;motion&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;orbitsVisible&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  state = { phase: 'home', activeIdx: null, cam: null, baseScale: 1, hovered: null, menuOpen: false, imgSrc: null, imgForIdx: null };
+  NAVBAND = 180;
+
+  // nav order = left→right = OUTERMOST → INNERMOST orbit
+  moonsData = [
+    { moon:'Iapetus', section:'About Me', sizePx:13.7, orbitR:560, periodS:270, startDeg:25,
+      caption:'Erin at the second Princeton Graduate School\'s Best of Access, Diversity, and Inclusion Awards Ceremony. Photo credit: Sameer Khan | Fotobuddy',
+      bg:'linear-gradient(108deg,#16171c 0 50%,#ece9e1 50% 100%)', border:'#111111',
+      tagline:'Astrophysicist \& Assoc. Director of STEM Education.',
+      paras:[
+        'I am an astrophysicist and Associate Director of STEM Education with Princeton University\'s Center on Science and Technology.',
+        'I received my PhD in Astrophysical Sciences from Princeton University in 2023, where my thesis work focused on using complex, 3D models of Titan\'s atmosphere to better understand our observations of Saturn\'s largest moon. I previously was a Research Associate for the NASA Dragonfly Mission, and I continue to work with members of the Aeolis Research Group on improving our climate models of Titan.',
+        'As Associate Director of STEM Education for the CST, I and other faculty maintain and uphold the scientific education standards at Princeton that consistently keep it ranked the top university in the country and one of the best universities in the world. To learn more about the CST, visit our website at <a href="https://cst.princeton.edu" target="_blank" rel="noopener">cst.princeton.edu</a>.'
+      ] },
+    { moon:'Titan', section:'Astrophysics Research', sizePx:48, orbitR:510, periodS:210, startDeg:140,
+      caption:'Titan, Saturn\'s largest moon. Photo credit: NASA/JPL-Caltech/SSI/Kevin M. Gill',
+      imgFit:'contain',
+      bg:'#ddd57a', border:'rgba(110,103,40,0.7)',
+      tagline:'Atmoshperic dynamics and chemistry of Titan and exoplanets.',
+      paras:[
+        'I study the atmospheric dynamics and chemistry of <a href="https://en.wikipedia.org/wiki/Titan_(moon)" target="_blank" rel="noopener">Titan</a>, Saturn\'s largest moon. One of the most interesting aspects of Titan is the presence of stable bodies of liquid on its surface. These include methane and ethane lakes and seas, which are similar to Earth\'s oceans, lakes, seas, etc, making it the only celestial body in our solar system other than Earth known to have stable liquid reservoirs. Titan is of great scientific interest because its atmosphere and liquid reservoirs may provide clues about the early Earth\'s atmosphere and the conditions that led to the development of life on our planet. The existence of an atmosphere and liquid bodies on Titan suggests that there may be the potential for some form of life to exist on the moon. While it is unlikely that life as we know it could exist on Titan due to the extreme cold temperatures and the lack of liquid water, it is possible that other forms of life could exist that are adapted to the unique conditions on the moon.',
+
+        'My PhD thesis is a "descent" through Titan\'s atmosphere, starting with the conditions in its orbit and ending at the surface. I conducted part of this research as a Early Career Scientist and then as a Research Associate with the NASA Dragonfly Mission, which will be sending a probe to Titan in 2028 (to learn more about the Dragonfly mission, <a href="https://science.nasa.gov/mission/dragonfly/" target="_blank" rel="noopener">click here</a>). My research explores how meteoroids contribute to its atmospheric chemistry, greatly improves an existing Titan GCM to study superrotating jets when topography is included, and predicts how surface winds shape sand dunes in Titan\'s equatorial desert.',
+
+        'Previously, I explored the interface between models and observations in regards to analyzing exoplanets atmospheres. This project consisted of a combination of three-dimensional General Circulation Models (GCM) (see <a href="https://arxiv.org/abs/1208.2274" target="_blank" rel="noopener">Rauscher \& Menou 2013</a>) and a radiative transfer scheme (see <a href="https://arxiv.org/abs/1109.2270" target="_blank" rel="noopener">Miller-Ricci Kempton \& Rauscher 2012</a>) to create an array of model transmission spectra for the well-studied hot Jupiter, <a href="https://en.wikipedia.org/wiki/HD_189733_b" target="_blank" rel="noopener">HD 189733b</a> (HD 189), each model differing by the planet\'s rotation period, transit phase, and chemical composition. These models were then used to analyze observed transmission spectra of HD 189, for the first time using a 3D GCM to determine atmospheric characteristics of a hot Jupiter exoplanet (<a href="https://en.wikipedia.org/wiki/HD_189733_b" target="_blank" rel="noopener">Flowers+ 2019</a>).'
+      ],
+      listLabel:'SELECTED PUBLICATIONS',
+      list:['<a href="https://arxiv.org/abs/1810.06099" target="_blank" rel="noopener">The high-resolution transmission spectrum of HD 189733b interpreted with atmospheric Doppler shifts from three-dimensional general circulation models (Flowers et al. 2019)</a>', '<a href="https://arxiv.org/abs/2307.10293" target="_blank" rel="noopener">Shock synthesis of organic molecules by meteoroids in the atmosphere of Titan (Flowers and Chyba 2023)</a>', '<a href="https://arxiv.org/abs/2011.11560" target="_blank" rel="noopener">The Magellan-TESS Survey. I. Survey Description and Mid-Survey Results (2021)</a>'] },
+    { moon:'Rhea', section:'Teaching', sizePx:14.2, orbitR:450, periodS:165, startDeg:260,
+      caption:'FRS 155: The Oldest Science goes to Machu Picchu',
+      imgPos:'45% center',
+      bg:'#dde7f0', border:'rgba(70,95,125,0.5)',
+      tagline:'Courses in archaeoastronomy, astrophysics, astrobiology, and computational methods.',
+      paras:[
+        'I teach an introductory course, "The Oldest Science\: An Overview of Ancient Astronomy Around the World," that pairs a traditional astrophysics survey course with weekly historical explorations of how different cultures studied and continue to study the night sky. During fall or spring breaks (depending on which semester the course runs), I take my students to Peru to visit Cusco, Machu Picchu, and many other Incan archaeological sites throughout the Sacred Valley.',
+
+        'Every other fall I teach a guest lecture series on astrobiology for Princeton sophomores, juniors, and seniors, and every other spring I co-teach a course that utilizes astrophysical data from the James Webb Space Telescope to teach computational data analysis methods in Python.'
+      ],
+      listLabel:'COURSES',
+      list:['<a href="https://registrar.princeton.edu/course-offerings/course-details?term=1262&courseid=017435" target="_blank" rel="noopener">FRS 155 - The Oldest Science\: An Overview of Ancient Astronomy Around the World</a>', '<a href="https://registrar.princeton.edu/course-offerings/course-details?term=1254&courseid=017684" target="_blank" rel="noopener">AST 207/STC 208 - A Gateway to Science\: Observational Astronomy in the James Webb Era</a>', '<a href="https://registrar.princeton.edu/course-offerings/course-details?term=1262&courseid=009408" target="_blank" rel="noopener">AST/CHM/EEB/GEO 255 - Life in the Universe</a>'] },
+    { moon:'Dione', section:'Public Outreach \& Education', sizePx:10.5, orbitR:400, periodS:135, startDeg:40,
+      caption:'IMAP Discovery Day at the Princeton Public Library',
+      bg:'#e3e2f0', border:'rgba(78,80,120,0.5)',
+      tagline:'Public speaking engagements and the Prison Teaching Initiative.',
+      paras:[
+        'In addition to my research, I am passionate about educational outreach in both astronomy and STEM as a whole. I am particularly dedicated to teaching and mentoring scientists-to-be from historically under-represented groups.', 
+
+        'For many years I have participated in and at times led public observing nights at each of my academic institutions, operating the department telescope, answering visitor questions, and giving informal lectures on astronomical topics. I also give talks around New York City at different schools and events, discussing my own research, my journey to becoming a scientist, and more. If you are interested in having me speak at your own event, please contact me via email.',
+
+        'I also volunteer as a math and science teacher with Princeton University\'s <a href="https://mcgraw.princeton.edu/community-college-engagement/prison-teaching-initiative" target="_blank" rel="noopener">Prison Teaching Initiative</a> (PTI), and I also have served as the Math and Physics Fellow with PTI. For a few weeks each semester, I go to a local state prison to teach a college course in math or science that the students can take for college credit or as a pre-requisite for a following creditable course. The students can take the courses provided by PTI to attain an Associate\'s Degree through a participating community college, and several students have gone on to attain Bachelors\' Degrees from local universities. As a fellow, I curated course content, liase between other volunteers and PTI admin and partners, and coordinate the volunteers. For more information on PTI\'s mission and how to get involved, click the button below.',
+
+        'To see the public outreach events I host as part of the Center on Science and Technology, sign up for our <a href="https://visitor.r20.constantcontact.com/manage/optin?v=001dBRrTs1qTB-s4VpCC125-9idNNej_-c-lNbZmpcyyFWbMFTa2a9GLfkw3kLJZXYW8x7g5uuDjzi9W6_ijy73qW3XON43v6OWXWqXcN_4NNtHVm_hI01lAP6IKuGyv72Bo6lgNn0HdPp-KrqJimLu7PlDKAIZNvuz" target="_blank" rel="noopener">newsletter</a>.'
+      ],
+      listLabel:'RECENT INITIAVES \& NEWS',
+      list:['<a href="https://www.blackinastro.com/black-space-week-2026" target="_blank" rel="noopener">Black Space Week \#BroadcastingTheStars STEM Education \& Outreach Panel (June 2026)</a>', 'The Nerdy Nook\: True Tales from the Lab (May 2026)', '<a href="https://astronomyontap.org/locations/trenton-nj/" target="_blank" rel="noopener">Astronomy on Tap Trenton (2024 - 2026, currently on hiatus)</a>', '<a href="" target="_blank" rel="noopener">Mystery on the moon (Discovery\: Research at Princeton Magazine, January 2022)</a>'] },
+    { moon:'Tethys', section:'Project Portfolio', sizePx:9.9, orbitR:350, periodS:110, startDeg:200,
+      caption:'Screenshot of the Spoken in Plain Science communication tool',
+      imgPos:'10% center',
+      bg:'#dcebe6', border:'rgba(55,100,90,0.5)',
+      tagline:'Simulations and open-source tools.',
+      paras:[
+        'Projects I have worked on for work or for fun, with links for publicly available tools.'
+      ],
+      listLabel:'SELECTED PROJECTS',
+      list:['CST StudioLab Data Analysis Dashboard', '"Spoken in Plain Science" science communication tool', 'CST Event Data Analysis Dashboard'] },
+    { moon:'Enceladus', section:'CV & Resume', sizePx:4.7, orbitR:300, periodS:90, startDeg:310,
+      caption:'Erin in the Peyton Hall Dome Room. Photo credit: Sameer Khan | Fotobuddy',
+      bg:'#e7f2ef', border:'rgba(30,110,100,0.65)',
+      tagline:'Education, appointments, and a downloadable CV and Resume.',
+      paras:[
+        'A condensed history below. The resume and full CV with publications are available as PDFs.'
+      ],
+      listLabel:'EDUCATION',
+      sections:[
+        { label:'EDUCATION', items:['Ph.D. Astrophysical Sciences (2023) - Princeton University','M.A. Astrophysical Sciences (2019) - Princeton University','B.A. Astrophysics (2017) - Columbia University'] },
+        { label:'WORK & RESEARCH', items:['Associate Director, STEM Education, Princeton CST (July 2026 - Present)', 'Assistant Director, STEM Education, Princeton CST (July 2023 - July 2026)', 'Research Associate, NASA Dragonfly (January 2022 - December 2025)', 'Graduate Research Assistant, Princeton Astrophysical Sciences Department (September 2017 - May 2023)'] },
+        { label:'TECHNICAL SKILLS', items:['[known computer languages] python, IDL, Fortran, C, C++, HTML, Linux, bash, SQL', '[computational skills] numerical integrators, iterative methods, Monte Carlo methods, AI-assisted coding, parallelized computing, statistical and machine learning'] },
+        { label:'SELECTED AWARDS & FELLOWSHIPS', items:['Princeton University Association of Black Graduate Alumni Patrice Y. Johnson *80 Service Award (2023)', 'National Science Fondation Graduate Research Fellowship (2017 - 2022)'] },
+      ],
+      docs:[
+        { label:'Curriculum Vitae', file:'files/cv.pdf' },
+        { label:'Resume', file:'files/resume.pdf' }
+      ]
+      },
+    { moon:'Mimas', section:'Get in Touch', sizePx:3.7, orbitR:250, periodS:70, startDeg:90,
+      caption:'Erin on top of Huayna Picchu!',
+      bg:'#cacac7', border:'rgba(0,0,0,0.4)',
+      tagline:'For collaboration, talks, or questions about the work.',
+      paras:[
+        'If you\'d like to get in touch, shoot me an email!'
+      ],
+      listLabel:'CONTACT',
+      list:[
+        '<span style="display:inline-flex;align-items:center;gap:11px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4a4f54" stroke-width="1.7" style="flex:none;"><rect x="3" y="5" width="18" height="14" rx="1.5"></rect><path d="M3.5 6.5 L12 13 L20.5 6.5"></path></svg><a href="mailto:eflowers@princeton.edu">eflowers@princeton.edu</a></span>',
+        '<span style="display:inline-flex;align-items:center;gap:11px;"><svg width="15" height="15" viewBox="0 0 24 24" style="flex:none;"><rect width="24" height="24" rx="3" fill="#4a4f54"></rect><text x="12" y="17" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" font-weight="700" fill="#fff">in</text></svg><a href="https://www.linkedin.com/in/erin-flowers-astro/" target="_blank" rel="noopener">LinkedIn</a></span>',
+        '<span style="display:inline-flex;align-items:center;gap:11px;"><svg width="15" height="15" viewBox="0 0 24 24" style="flex:none;"><circle cx="12" cy="12" r="11" fill="#4a4f54"></circle><text x="12" y="16.5" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" font-weight="700" fill="#fff">iD</text></svg><a href="https://orcid.org/0000-0001-8045-1765" target="_blank" rel="noopener">ORCID</a></span>',
+        '<span style="display:inline-flex;align-items:center;gap:11px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="flex:none;"><path d="M12 3 L22.5 8.2 L12 13.4 L1.5 8.2 Z" fill="#4a4f54"></path><path d="M5.5 10.4 V15.2 C5.5 16.9 8.4 18.4 12 18.4 C15.6 18.4 18.5 16.9 18.5 15.2 V10.4" stroke="#4a4f54" stroke-width="1.6" fill="none"></path></svg><a href="https://scholar.google.com/citations?user=8uiVQxYAAAAJ&hl=en" target="_blank" rel="noopener">Google Scholar</a></span>',
+        '<span style="display:inline-flex;align-items:center;gap:11px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#4a4f54" stroke-width="1.7" style="flex:none;"><path d="M12 21.5 C12 21.5 19 14.8 19 9 A7 7 0 1 0 5 9 C5 14.8 12 21.5 12 21.5 Z"></path><circle cx="12" cy="9" r="2.6"></circle></svg><span>Office — Peter B. Lewis Library 234</span></span>'
+      ] },
+  ];
+
+  setRoot = (el) => { this.rootEl = el; };
+  goHomeFn = () => this.goHome();
+
+  componentDidMount() {
+    document.title = 'Erin E. Flowers, PhD - Astrophysicist';
+    this.calcScale();
+    this._rs = () => this.calcScale();
+    window.addEventListener('resize', this._rs);
+  }
+  componentWillUnmount() {
+    window.removeEventListener('resize', this._rs);
+    clearTimeout(this._t);
+  }
+
+  calcScale() {
+    const availH = window.innerHeight - this.NAVBAND;
+    const bs = Math.min(1, (availH * 0.92) / 1200, (window.innerWidth * 0.94) / 1200);
+    this.setState({ baseScale: bs, winW: window.innerWidth, winH: window.innerHeight });
+  }
+
+  zoomTo(i) {
+    if (this.state.phase !== 'home') return;
+    const root = this.rootEl;
+    if (!root) return;
+    root.querySelectorAll('[data-spin]').forEach(e => { e.style.animationPlayState = 'paused'; });
+    this._frozenCenters = [];
+    for (let j = 0; j < this.moonsData.length; j++) {
+      const e = root.querySelector('#moon-' + j);
+      if (e) { const rr = e.getBoundingClientRect(); this._frozenCenters[j] = { x: rr.left + rr.width / 2, y: rr.top + rr.height / 2 }; }
+    }
+    const cam = this.camFor(i);
+    this.setState({ phase: 'zoomingIn', activeIdx: i, cam, hovered: null });
+    this.probeImage(i);
+    clearTimeout(this._t);
+    this._t = setTimeout(() => this.setState({ phase: 'page' }), 1150);
+  }
+
+  camFor(i) {
+    const c = this._frozenCenters && this._frozenCenters[i];
+    if (!c) return this.state.cam;
+    const Cx = window.innerWidth / 2, Cy = (window.innerHeight - this.NAVBAND) / 2;
+    const bs = this.state.baseScale || 1;
+    const moonScreen = Math.max(2, Math.max(7, this.moonsData[i].sizePx) * bs);
+    const Z = Math.min(46, Math.max(11, (Math.max(window.innerWidth, window.innerHeight) * 1.7) / moonScreen));
+    return `translate(${-Z * (c.x - Cx)}px,${-Z * (c.y - Cy)}px) scale(${bs * Z})`;
+  }
+
+  goToPage(i) {
+    this.setState({ menuOpen: false });
+    if (i === this.state.activeIdx) return;
+    this.setState({ phase: 'closingPage' });
+    clearTimeout(this._t);
+    this._t = setTimeout(() => { this.setState({ activeIdx: i, phase: 'page', cam: this.camFor(i) }); this.probeImage(i); }, 340);
+  }
+
+  toggleMenuFn = () => this.setState(s => ({ menuOpen: !s.menuOpen }));
+
+  probeImage(i) {
+    const name = (this.moonsData[i].moon || '').toLowerCase();
+    if (window.MOON_IMAGES && window.MOON_IMAGES[name]) { this.setState({ imgSrc: window.MOON_IMAGES[name], imgForIdx: i }); return; }
+    const exts = ['jpg', 'png', 'jpeg', 'webp'];
+    let k = 0;
+    const tryNext = () => {
+      if (k >= exts.length) { this.setState({ imgSrc: null, imgForIdx: i }); return; }
+      const src = 'images/' + name + '.' + exts[k++];
+      const im = new Image();
+      im.onload = () => this.setState({ imgSrc: src, imgForIdx: i });
+      im.onerror = tryNext;
+      im.src = src;
+    };
+    this.setState({ imgSrc: null, imgForIdx: i });
+    tryNext();
+  }
+
+  goHome() {
+    if (this.state.phase !== 'page') return;
+    this.setState({ phase: 'closingPage', menuOpen: false });
+    clearTimeout(this._t);
+    this._t = setTimeout(() => {
+      this.setState({ phase: 'zoomingOut' });
+      this._t = setTimeout(() => this.setState({ phase: 'home', activeIdx: null, cam: null, imgSrc: null }), 1180);
+    }, 360);
+  }
+
+  renderVals() {
+    const { phase, activeIdx, cam, baseScale, hovered } = this.state;
+    const bs = baseScale || 1;
+    const motionOn = this.props.motion !== false;
+    const orbitsOn = this.props.orbitsVisible !== false;
+    const saturnColor = this.props.saturnColor || '#111111';
+    const orbitColor = orbitsOn ? '#d6d9dc' : 'transparent';
+    const playState = (motionOn && phase === 'home') ? 'running' : 'paused';
+
+    const moons = this.moonsData.map((m, i) => ({
+      idxLabel: '0' + (i + 1),
+      section: m.section,
+      moonUpper: m.moon.toUpperCase(),
+      onClick: () => this.zoomTo(i),
+      onEnter: () => { if (this.state.phase === 'home') this.setState({ hovered: i }); },
+      onLeave: () => this.setState({ hovered: null }),
+      orbitStyle: {
+        position: 'absolute', left: '50%', top: '50%',
+        width: (2 * m.orbitR) + 'px', height: (2 * m.orbitR) + 'px',
+        transform: 'translate(-50%,-50%)', borderRadius: '50%',
+        border: '1px solid ' + orbitColor, zIndex: 1
+      },
+      rotatorStyle: {
+        position: 'absolute', left: '50%', top: '50%', width: 0, height: 0,
+        transform: 'rotate(' + m.startDeg + 'deg)', zIndex: 3
+      },
+      spinnerStyle: {
+        position: 'absolute', left: 0, top: 0, width: 0, height: 0,
+        animation: 'orbitSpin ' + m.periodS + 's linear infinite',
+        animationPlayState: playState
+      },
+      moonStyle: {
+        position: 'absolute', left: 0, top: 0, boxSizing: 'border-box',
+        width: Math.max(7, m.sizePx) + 'px', height: Math.max(7, m.sizePx) + 'px', borderRadius: '50%',
+        background: m.bg, border: '1px solid ' + m.border,
+        transform: 'translate(-50%,-50%) translateX(' + m.orbitR + 'px)',
+        cursor: 'pointer',
+        boxShadow: hovered === i ? '0 0 0 5px rgba(20,23,26,0.10)' : 'none',
+        transition: 'box-shadow 0.25s ease'
+      },
+      navItemStyle: {
+        padding: '20px 18px 22px', cursor: 'pointer',
+        background: hovered === i ? '#e4e7ea' : 'transparent',
+        transition: 'background 0.2s ease'
+      },
+      dotStyle: {
+        width: '11px', height: '11px', borderRadius: '50%', display: 'inline-block',
+        background: m.bg, border: '1px solid ' + m.border, flex: 'none'
+      }
+    }));
+
+    let transform, opacity, transition, pe;
+    if (phase === 'home') {
+      transform = 'scale(' + bs + ')'; opacity = 1;
+      transition = 'transform 1.1s cubic-bezier(.66,0,.2,1), opacity .7s ease'; pe = 'auto';
+    } else if (phase === 'zoomingIn') {
+      transform = cam; opacity = 0;
+      transition = 'transform 1.15s cubic-bezier(.6,0,1,1), opacity .5s ease .6s'; pe = 'none';
+    } else if (phase === 'zoomingOut') {
+      transform = 'scale(' + bs + ')'; opacity = 1;
+      transition = 'transform 1.15s cubic-bezier(.2,0,.3,1), opacity .7s ease'; pe = 'none';
+    } else {
+      transform = cam; opacity = 0; transition = 'none'; pe = 'none';
+    }
+    const winW = this.state.winW || (typeof window !== 'undefined' ? window.innerWidth : 1200);
+    const winH = this.state.winH || (typeof window !== 'undefined' ? window.innerHeight : 800);
+    const cy = (winH - this.NAVBAND) / 2;
+    const systemStyle = {
+      position: 'absolute', left: ((winW - 1200) / 2) + 'px', top: (cy - 600) + 'px',
+      width: '1200px', height: '1200px',
+      transformOrigin: '50% 50%', transform, opacity, transition, pointerEvents: pe
+    };
+
+    const homeFade = phase === 'home';
+    const labelLeftStyle = {
+      position: 'fixed', top: '30px', left: '34px', zIndex: 30,
+      opacity: homeFade ? 1 : 0, pointerEvents: 'none', transition: 'opacity .5s ease'
+    };
+    const labelRightStyle = {
+      position: 'fixed', top: '30px', right: '34px', zIndex: 30, textAlign: 'right',
+      opacity: homeFade ? 1 : 0, pointerEvents: 'none', transition: 'opacity .5s ease'
+    };
+    const navStyle = {
+      position: 'fixed', left: '50%', bottom: '34px', transform: 'translateX(-50%)',
+      width: 'min(1080px,92vw)', zIndex: 30,
+      opacity: homeFade ? 1 : 0, pointerEvents: homeFade ? 'auto' : 'none',
+      transition: 'opacity .5s ease'
+    };
+
+    const pageOpen = activeIdx != null && phase !== 'home';
+    const m = activeIdx != null ? this.moonsData[activeIdx] : {};
+    const am = {
+      section: m.section || '', moon: m.moon || '', tagline: m.tagline || '',
+      paras: (m.paras || []).map(s => ({ html: { __html: s } })),
+      sections: (m.sections
+        ? m.sections
+        : (m.list && m.list.length ? [{ label: m.listLabel || '', items: m.list }] : [])
+      ).map(s => ({ label: s.label, items: (s.items || []).map((t, ti, arr) => ({ html: { __html: t }, liStyle: { display: 'flex', gap: '18px', padding: '13px 0', borderBottom: ti === arr.length - 1 ? 'none' : '1px solid #e3e6e8', fontSize: '14px', color: '#23272b' } })) })),
+      hasDocs: !!(m.docs && m.docs.length),
+      docs: (m.docs || []).map(d => ({ file: (window.MOON_DOCS && window.MOON_DOCS[d.file]) || d.file, labelPdf: '\u2193 ' + d.label + ' (PDF)' })),
+      imgEl: (() => {
+        // A video takes precedence over the still image when one is set for this moon.
+        const vsrc = m.video ? ((window.MOON_VIDEOS && window.MOON_VIDEOS[m.video]) || m.video) : null;
+        if (vsrc) {
+          return React.createElement('video', {
+            src: vsrc, controls: true, playsInline: true, preload: 'metadata',
+            poster: (this.state.imgSrc && this.state.imgForIdx === activeIdx) ? this.state.imgSrc : undefined,
+            style: { position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: m.imgPos || 'center', background: '#000' }
+          });
+        }
+        return (this.state.imgSrc && this.state.imgForIdx === activeIdx)
+          ? React.createElement('img', { src: this.state.imgSrc, alt: m.moon || '', style: { position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: m.imgFit || 'cover', objectPosition: m.imgPos || 'center', background: m.imgBg || '#000000' } })
+          : null;
+      })(),
+      dotStyle: { width: '12px', height: '12px', borderRadius: '50%', display: 'inline-block', background: m.bg || '#ccc', border: '1px solid ' + (m.border || '#999'), flex: 'none' },
+      caption: m.caption || m.moon || ''
+    };
+    const pageStyle = {
+      position: 'fixed', inset: 0, background: '#f5f6f7', zIndex: 50,
+      opacity: phase === 'page' ? 1 : 0, transition: 'opacity .5s ease',
+      pointerEvents: phase === 'page' ? 'auto' : 'none', display: 'flex'
+    };
+
+    const menuOpen = this.state.menuOpen;
+    const pageLinks = this.moonsData.map((mm, i) => ({
+      section: mm.section,
+      onClick: () => this.goToPage(i),
+      dotStyle: { width: '10px', height: '10px', borderRadius: '50%', display: 'inline-block', background: mm.bg, border: '1px solid ' + mm.border, flex: 'none' },
+      style: { display: 'flex', alignItems: 'center', gap: '11px', padding: '9px 14px', cursor: 'pointer', fontSize: '12px', letterSpacing: '0.02em', whiteSpace: 'nowrap', color: i === activeIdx ? '#14171a' : '#5a6065', background: i === activeIdx ? '#eef0f2' : 'transparent' }
+    }));
+    const caretStyle = { cursor: 'pointer', fontSize: '13px', color: '#14171a', userSelect: 'none', transform: menuOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform .3s ease', lineHeight: 1, padding: '4px' };
+    const menuStyle = { position: 'absolute', top: '52px', left: 0, background: '#fbfbfa', border: '1px solid #dadde0', boxShadow: '0 14px 34px rgba(20,23,26,0.12)', padding: '6px', minWidth: '210px', transformOrigin: 'top left', transform: menuOpen ? 'scaleY(1)' : 'scaleY(0)', opacity: menuOpen ? 1 : 0, transition: 'transform .28s cubic-bezier(.5,0,.2,1), opacity .25s ease', pointerEvents: menuOpen ? 'auto' : 'none' };
+
+    return { setRoot: this.setRoot, goHome: this.goHomeFn, toggleMenu: this.toggleMenuFn, menuOpen, pageLinks, caretStyle, menuStyle, moons, systemStyle, saturnColor,
+      labelLeftStyle, labelRightStyle, navStyle, pageOpen, am, pageStyle };
+  }
+}
+</script>
+</body>
+</html>

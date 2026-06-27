@@ -183,6 +183,12 @@
               </sc-for>
             </div>
           </sc-for>
+          <sc-if value="{{ am.hasProjects }}" hint-placeholder-val="{{ true }}">
+            <div style="margin-top:46px;border-top:1px solid #d6d9dc;padding-top:24px;">
+              <div style="font-size:10px;letter-spacing:0.26em;color:#969a9e;margin-bottom:18px;">{{ am.projectsLabel }}</div>
+              {{ am.projectsGrid }}
+            </div>
+          </sc-if>
           <sc-if value="{{ am.hasDocs }}" hint-placeholder-val="{{ true }}">
             <div style="margin-top:46px;border-top:1px solid #d6d9dc;padding-top:24px;">
               <div style="font-size:10px;letter-spacing:0.26em;color:#969a9e;margin-bottom:18px;">DOCUMENTS</div>
@@ -268,7 +274,16 @@ class Component extends DCLogic {
         'Projects I have worked on for work or for fun, with links for publicly available tools.'
       ],
       listLabel:'SELECTED PROJECTS',
-      list:['CST StudioLab Data Analysis Dashboard', '"Spoken in Plain Science" science communication tool', 'CST Event Data Analysis Dashboard'] },
+      // 2x2 image grid. Each project: a screenshot (dropped at images/projects/<img>),
+      // a name caption, and a url — both image and name link out to the project.
+      // Until a screenshot is present, the striped placeholder shows. Set url:'#' acts
+      // as a not-yet-live placeholder (the card stays in place, just doesn't navigate).
+      projects:[
+        { name:'CST StudioLab Data Analysis Dashboard', url:'#', img:'studiolab.png' },
+        { name:'"Spoken in Plain Science" science communication tool', url:'#', img:'spoken-in-plain-science.png' },
+        { name:'CST Event Data Analysis Dashboard', url:'#', img:'event-dashboard.png' },
+        { name:'nü — NYC restaurant + bar discovery tool', url:'#', img:'nu.png' },
+      ] },
     { moon:'Enceladus', section:'CV & Resume', sizePx:4.7, orbitR:300, periodS:90, startDeg:310,
       caption:'Erin in the Peyton Hall Dome Room. Photo credit: Sameer Khan | Fotobuddy',
       bg:'#e7f2ef', border:'rgba(30,110,100,0.65)',
@@ -577,7 +592,46 @@ class Component extends DCLogic {
           : null;
       })(),
       dotStyle: { width: '12px', height: '12px', borderRadius: '50%', display: 'inline-block', background: m.bg || '#ccc', border: '1px solid ' + (m.border || '#999'), flex: 'none' },
-      caption: m.caption || m.moon || ''
+      caption: m.caption || m.moon || '',
+      // Project portfolio: a 2x2 grid of screenshot cards. Image + name both link out.
+      hasProjects: !!(m.projects && m.projects.length),
+      projectsLabel: (m.projects && m.projects.length) ? (m.listLabel || 'SELECTED PROJECTS') : '',
+      projectsGrid: (m.projects && m.projects.length)
+        ? React.createElement('div', {
+            style: { display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? '24px' : '26px' }
+          }, m.projects.map((p, pi) => {
+            const live = p.url && p.url !== '#';
+            const imgPath = p.img ? ('images/projects/' + p.img) : null;
+            const linkProps = (extra) => Object.assign({
+              href: p.url || '#',
+              target: live ? '_blank' : undefined,
+              rel: live ? 'noopener' : undefined,
+              onClick: live ? undefined : ((e) => e.preventDefault())
+            }, extra);
+            return React.createElement('div', { key: pi, style: { display: 'flex', flexDirection: 'column' } },
+              React.createElement('a', linkProps({
+                style: {
+                  position: 'relative', display: 'block', width: '100%', aspectRatio: '16/10',
+                  overflow: 'hidden', border: '1px solid #d2d6d9',
+                  background: 'repeating-linear-gradient(45deg,#e4e7ea 0 11px,#dde0e3 11px 22px)',
+                  cursor: live ? 'pointer' : 'default'
+                }
+              }),
+                React.createElement('span', {
+                  style: { position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '0 14px', fontSize: '10px', fontWeight: 500, letterSpacing: '0.12em', color: '#7c8287' }
+                }, '[ DROP SCREENSHOT ]'),
+                imgPath ? React.createElement('img', {
+                  src: imgPath, alt: p.name || '',
+                  onError: (e) => { e.target.style.display = 'none'; },
+                  style: { position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center', background: '#fff' }
+                }) : null
+              ),
+              React.createElement('a', linkProps({
+                style: { marginTop: '13px', fontSize: '13px', fontWeight: 500, lineHeight: 1.45, color: '#23272b', textDecoration: live ? 'underline' : 'none', textUnderlineOffset: '2px', cursor: live ? 'pointer' : 'default' }
+              }), p.name || '')
+            );
+          }))
+        : null
     };
     const pageStyle = {
       position: 'fixed', inset: 0, background: '#f5f6f7', zIndex: 50,

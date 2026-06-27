@@ -1,30 +1,20 @@
-# Maintaining the site
+# Page images
 
-## To change a moon photo, a PDF, or any text — the easy way (hosted site)
+Drop one image per page into this folder, named after that page's moon (lowercase).
+`.jpg` is tried first, then `.png` — so either extension works.
 
-Your GitHub-hosted site loads each moon photo straight from the `images/` folder and each
-PDF from the `files/` folder. So to swap one:
+| Page                        | Moon       | Filename to use            |
+|-----------------------------|------------|----------------------------|
+| About Me                    | Iapetus    | `iapetus.jpg`              |
+| Astrophysics Research       | Titan      | `titan.jpg`                |
+| Teaching                    | Rhea       | `rhea.jpg`                 |
+| Public Outreach & Education | Dione      | `dione.jpg`                |
+| Project Portfolio           | Tethys     | `tethys.jpg`               |
+| CV & Resume                 | Enceladus  | `enceladus.jpg`            |
+| Get in Touch                | Mimas      | `mimas.jpg`                |
 
-1. Replace the file in `images/` (e.g. `images/titan.jpg`) or `files/` (e.g. `files/cv.pdf`),
-   keeping the **same filename**.
-2. Commit and push. That's it — no rebuild needed.
+The image fills the tall panel on the left of each page (it's cropped to fit, so a
+portrait-ish crop works best). Until a file is present, the striped placeholder shows.
 
-Keep photos at a reasonable size (long edge ~1000px) so pages load fast.
-
-Moon → filename: `iapetus`, `titan`, `rhea`, `dione`, `tethys`, `enceladus`, `mimas`
-(any of `.jpg` / `.png` / `.webp`).
-
-To edit **text, links, captions, framing**, edit the `moonsData` list inside
-`Saturn Orrery.dc.html`, then commit.
-
-## To refresh the offline single-file (`Erin Flowers - Astrophysicist.html`)
-
-That one file has everything baked in, so it must be rebuilt when assets change. Open
-`build/rebuild.html` in your browser, select your images + PDFs + `Saturn Orrery.dc.html`
-+ `support.js`, and click **Build**. It downloads a fresh `moon-assets.js` and
-`Erin Flowers - Astrophysicist.html`. Nothing leaves your machine (it only fetches the
-React runtime from unpkg, like the site does).
-
-You only need this file if you share the site as a single downloadable/offline file. If you
-deploy the multi-file set to GitHub Pages, you never have to rebuild anything — just swap
-files and commit.
+The Project Portfolio page also has a 2×2 screenshot grid under **SELECTED PROJECTS**;
+those images live in `images/projects/` — see that folder's README.
